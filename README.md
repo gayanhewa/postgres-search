@@ -79,7 +79,7 @@ Indexes (in `sql/002_indexes.sql`):
 
 - `documents_tsv_idx` - `GIN` on `search_tsv`. Fast `@@ tsquery` lookups.
 - `documents_title_trgm_idx` - `GIN` with `gin_trgm_ops`. Available for fuzzy `ILIKE` and `similarity()` experiments.
-- `documents_embedding_idx` - `IVFFlat` with cosine ops. Approximate nearest neighbor.
+- `documents_embedding_idx` - `IVFFlat` with cosine ops. Approximate nearest neighbor. IVFFlat trains on the existing vectors (k-means), so it is only effective once the table has data. HNSW has no such training step and can be created on an empty table.
 
 ### Text search adapter
 
@@ -166,9 +166,33 @@ TEST_DB=1 bun test:integration
 - Change the `ts_rank_cd` weight array in `src/adapters/postgres/text-search.pg.ts` and see how ranking shifts.
 - Swap `websearch_to_tsquery` for `plainto_tsquery` and compare. Try a query with a minus sign.
 - Change the tsvector language config from `'english'` to `'simple'` in `sql/001_init.sql`. The simple config skips stemming and stop words. Re-run `bun run db:reset` and notice how queries for "indexing" stop matching "index."
-- Replace `IVFFlat` with `HNSW` in `sql/002_indexes.sql` (pgvector 0.5+). Compare recall and latency on larger seed sizes (set `SEED_RANDOM_COUNT=10000`).
+- Replace `IVFFlat` with `HNSW` in `sql/002_indexes.sql` (pgvector 0.5+). Per the pgvector README, HNSW has better speed/recall than IVFFlat at the cost of build time and memory. Compare both on larger seed sizes (set `SEED_RANDOM_COUNT=10000`).
 - Replace the fake embedding with a real one (Ollama, OpenAI). Only `deterministic-fake-embedding.ts` should need to change.
 - Change the hybrid weights in `src/application/hybrid-search.ts` or implement reciprocal rank fusion and see how the blended results shift.
+
+## Documentation
+
+Official references for every technique described above:
+
+**Postgres full-text search**
+- [Full-text search intro](https://www.postgresql.org/docs/current/textsearch-intro.html)
+- [tsvector and tsquery data types](https://www.postgresql.org/docs/current/datatype-textsearch.html)
+- [Controlling text search: `websearch_to_tsquery`, `plainto_tsquery`, `phraseto_tsquery`](https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES)
+- [Ranking: `ts_rank` and `ts_rank_cd`](https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-RANKING)
+- [Stop-word dictionaries](https://www.postgresql.org/docs/current/textsearch-dictionaries.html#TEXTSEARCH-STOPWORDS)
+- [`pg_trgm` trigram extension](https://www.postgresql.org/docs/current/pgtrgm.html)
+- [GIN and GiST indexes](https://www.postgresql.org/docs/current/textsearch-indexes.html)
+
+**pgvector**
+- [Getting started](https://github.com/pgvector/pgvector#getting-started)
+- [Distance operators and querying](https://github.com/pgvector/pgvector#querying)
+- [Distance reference (including the `1 - distance` cosine similarity recipe)](https://github.com/pgvector/pgvector#distances)
+- [IVFFlat index](https://github.com/pgvector/pgvector#ivfflat)
+- [HNSW index](https://github.com/pgvector/pgvector#hnsw)
+
+**Hybrid retrieval**
+- [Reciprocal Rank Fusion, Cormack, Clarke, Buttcher (SIGIR 2009)](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf)
+- [Elastic's RRF documentation](https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion)
 
 ## Layout
 

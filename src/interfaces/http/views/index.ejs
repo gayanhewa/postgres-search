@@ -13,6 +13,7 @@
         --card: #fff;
         --accent: #0066cc;
         --border: #e5e5e5;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
       * { box-sizing: border-box; }
       body {
@@ -21,7 +22,7 @@
         background: var(--bg);
         margin: 0;
         padding: 24px;
-        max-width: 1400px;
+        max-width: 1500px;
         margin-inline: auto;
       }
       h1 { margin: 0 0 4px; }
@@ -54,12 +55,21 @@
         color: white;
         border-color: var(--accent);
       }
+      button.link {
+        background: transparent;
+        border: none;
+        color: var(--accent);
+        padding: 0;
+        font-size: 13px;
+        cursor: pointer;
+        text-decoration: underline;
+      }
       .grid {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
         gap: 12px;
       }
-      @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+      @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }
       .panel {
         background: var(--card);
         border: 1px solid var(--border);
@@ -67,21 +77,42 @@
         padding: 14px;
         min-height: 120px;
       }
+      .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+      }
       .panel h2 {
         margin: 0 0 4px;
-        font-size: 15px;
-        letter-spacing: 0.02em;
+        font-size: 13px;
+        letter-spacing: 0.05em;
         text-transform: uppercase;
         color: var(--muted);
       }
-      .panel p.hint { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+      .panel .summary {
+        font-size: 13px;
+        color: #444;
+        line-height: 1.5;
+        margin: 0 0 10px;
+      }
       .hit {
         border-top: 1px solid var(--border);
         padding: 10px 0;
       }
       .hit:first-of-type { border-top: none; }
+      .hit .title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 8px;
+      }
       .hit .title { font-weight: 600; margin-bottom: 4px; }
-      .hit .body { color: #333; font-size: 14px; line-height: 1.45; }
+      .hit .body {
+        color: #333;
+        font-size: 14px;
+        line-height: 1.45;
+      }
       .hit .meta {
         display: flex;
         gap: 8px;
@@ -93,30 +124,163 @@
       .score { font-variant-numeric: tabular-nums; }
       .empty { color: var(--muted); font-size: 14px; }
       .loading { color: var(--muted); font-size: 14px; }
-      code { background: #f0f0f0; padding: 1px 4px; border-radius: 3px; font-size: 13px; }
+      code {
+        background: #f0f0f0;
+        padding: 1px 4px;
+        border-radius: 3px;
+        font-size: 13px;
+        font-family: var(--mono);
+      }
+
+      /* Modal */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+      }
+      .modal {
+        background: var(--card);
+        border-radius: 10px;
+        max-width: 780px;
+        width: 100%;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 24px 28px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      }
+      .modal-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+      }
+      .modal-head h3 {
+        margin: 0;
+        font-size: 18px;
+      }
+      .modal-close {
+        background: transparent;
+        border: none;
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+        color: var(--muted);
+        padding: 0 4px;
+      }
+      .modal-body { font-size: 14px; line-height: 1.6; color: #222; }
+      .modal-body h4 { margin: 18px 0 6px; font-size: 14px; }
+      .modal-body h4:first-child { margin-top: 0; }
+      .modal-body p { margin: 0 0 10px; }
+      .modal-body ul { margin: 0 0 10px 20px; padding: 0; }
+      .modal-body li { margin-bottom: 6px; }
+      .modal-body pre {
+        background: #f4f4f4;
+        padding: 10px 12px;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-size: 12.5px;
+        font-family: var(--mono);
+        margin: 6px 0 12px;
+      }
+      .modal-body .example {
+        background: #eef5ff;
+        border-left: 3px solid var(--accent);
+        padding: 10px 14px;
+        margin: 8px 0 12px;
+        border-radius: 0 4px 4px 0;
+      }
+      .modal-body .formula {
+        font-family: var(--mono);
+        background: #f9f9fb;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 6px 10px;
+        font-size: 13px;
+        margin: 6px 0;
+      }
+      .modal-body .kv {
+        display: inline-block;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 2px 6px;
+        margin: 2px 4px 2px 0;
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .pill {
+        display: inline-block;
+        padding: 1px 6px;
+        background: #eef5ff;
+        color: var(--accent);
+        border-radius: 10px;
+        font-size: 11.5px;
+        font-family: var(--mono);
+        margin: 1px 2px 1px 0;
+      }
+      .explain-btn {
+        font-size: 12px;
+        color: var(--accent);
+        background: #eef5ff;
+        border: 1px solid #cfe0ff;
+        border-radius: 12px;
+        padding: 2px 10px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .explain-btn:hover { background: #dceaff; }
+      .doc-links {
+        margin-top: 14px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--border);
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+      .doc-links a { color: var(--accent); text-decoration: none; }
+      .doc-links a:hover { text-decoration: underline; }
+      .doc-links ul { margin: 4px 0 0 18px; }
+      .doc-links li { margin: 2px 0; }
     </style>
   </head>
   <body x-data="search()">
     <h1>Postgres Search Playground</h1>
-    <p class="sub">Same query, three engines: tsvector full-text, pgvector similarity, and a hybrid blend.</p>
+    <p class="sub">
+      Same query, three engines. Click any
+      <span class="explain-btn" style="cursor: default">explain</span>
+      button to open a plain-English explanation.
+    </p>
 
     <form class="controls" @submit.prevent="runAll()">
-      <input type="text" x-model="q" placeholder='Try: "postgres index performance" or a typo like "postgers"' autofocus />
+      <input type="text" x-model="q" placeholder='Try: "postgres indexing" or a typo like "pgvetor"' autofocus />
       <button type="submit" class="primary" :disabled="loading">Search</button>
       <button type="button" @click="setExample('postgres indexing')">example 1</button>
       <button type="button" @click="setExample('database performance tuning')">example 2</button>
       <button type="button" @click="setExample('pgvector similarity')">example 3</button>
+      <button type="button" class="explain-btn" @click="open('intro')">what is this?</button>
     </form>
 
     <div class="grid">
+      <!-- tsvector panel -->
       <section class="panel">
-        <h2>tsvector / tsquery</h2>
-        <p class="hint">Keyword match using <code>websearch_to_tsquery</code> and <code>ts_rank_cd</code>.</p>
+        <div class="panel-head">
+          <h2 x-text="text.meta ? text.meta.title : 'tsvector / tsquery'"></h2>
+          <button class="explain-btn" @click="open('tsvector-engine')">explain</button>
+        </div>
+        <p class="summary" x-text="text.meta ? text.meta.summary : 'Keyword search in Postgres.'"></p>
+
         <template x-if="loading"><div class="loading">searching...</div></template>
-        <template x-if="!loading && text.length === 0"><div class="empty">no hits</div></template>
-        <template x-for="h in text" :key="'t-' + h.id">
+        <template x-if="!loading && (text.hits || []).length === 0"><div class="empty">no hits</div></template>
+        <template x-for="h in (text.hits || [])" :key="'t-' + h.id">
           <div class="hit">
-            <div class="title" x-text="h.title"></div>
+            <div class="title-row">
+              <div class="title" x-text="h.title"></div>
+              <button class="explain-btn" @click="openHit('tsvector-hit', h)">explain</button>
+            </div>
             <div class="body" x-text="truncate(h.body, 220)"></div>
             <div class="meta">
               <span class="score">score <span x-text="h.score"></span></span>
@@ -127,14 +291,22 @@
         </template>
       </section>
 
+      <!-- pgvector panel -->
       <section class="panel">
-        <h2>pgvector</h2>
-        <p class="hint">Cosine similarity with the <code>&lt;=&gt;</code> operator on 128-dim fake embeddings.</p>
+        <div class="panel-head">
+          <h2 x-text="vector.meta ? vector.meta.title : 'pgvector'"></h2>
+          <button class="explain-btn" @click="open('pgvector-engine')">explain</button>
+        </div>
+        <p class="summary" x-text="vector.meta ? vector.meta.summary : 'Vector similarity search in Postgres.'"></p>
+
         <template x-if="loading"><div class="loading">searching...</div></template>
-        <template x-if="!loading && vector.length === 0"><div class="empty">no hits</div></template>
-        <template x-for="h in vector" :key="'v-' + h.id">
+        <template x-if="!loading && (vector.hits || []).length === 0"><div class="empty">no hits</div></template>
+        <template x-for="h in (vector.hits || [])" :key="'v-' + h.id">
           <div class="hit">
-            <div class="title" x-text="h.title"></div>
+            <div class="title-row">
+              <div class="title" x-text="h.title"></div>
+              <button class="explain-btn" @click="openHit('pgvector-hit', h)">explain</button>
+            </div>
             <div class="body" x-text="truncate(h.body, 220)"></div>
             <div class="meta">
               <span class="score">cos sim <span x-text="h.score"></span></span>
@@ -144,14 +316,22 @@
         </template>
       </section>
 
+      <!-- hybrid panel -->
       <section class="panel">
-        <h2>hybrid</h2>
-        <p class="hint">Min-max normalized scores blended 50/50.</p>
+        <div class="panel-head">
+          <h2 x-text="hybrid.meta ? hybrid.meta.title : 'hybrid'"></h2>
+          <button class="explain-btn" @click="open('hybrid-engine')">explain</button>
+        </div>
+        <p class="summary" x-text="hybrid.meta ? hybrid.meta.summary : 'Blended keyword + vector search.'"></p>
+
         <template x-if="loading"><div class="loading">searching...</div></template>
-        <template x-if="!loading && hybrid.length === 0"><div class="empty">no hits</div></template>
-        <template x-for="h in hybrid" :key="'h-' + h.id">
+        <template x-if="!loading && (hybrid.hits || []).length === 0"><div class="empty">no hits</div></template>
+        <template x-for="h in (hybrid.hits || [])" :key="'h-' + h.id">
           <div class="hit">
-            <div class="title" x-text="h.title"></div>
+            <div class="title-row">
+              <div class="title" x-text="h.title"></div>
+              <button class="explain-btn" @click="openHit('hybrid-hit', h)">explain</button>
+            </div>
             <div class="body" x-text="truncate(h.body, 220)"></div>
             <div class="meta">
               <span class="score">blended <span x-text="h.score"></span></span>
@@ -162,18 +342,371 @@
       </section>
     </div>
 
+    <!-- Modal -->
+    <div class="modal-backdrop" x-show="modal" x-cloak @click.self="close()" @keydown.escape.window="close()">
+      <div class="modal" x-show="modal" x-transition>
+        <div class="modal-head">
+          <h3 x-text="modalTitle()"></h3>
+          <button class="modal-close" @click="close()" aria-label="Close">&times;</button>
+        </div>
+        <div class="modal-body">
+
+          <!-- intro -->
+          <template x-if="modal === 'intro'">
+            <div>
+              <h4>What is this app?</h4>
+              <p>
+                This playground runs your search query through three different engines at the same time and shows you the top results side by side. The goal is to build intuition for how each engine behaves.
+              </p>
+              <ul>
+                <li><b>tsvector</b> is Postgres' built-in keyword search. Fast, exact, great when the user knows the words.</li>
+                <li><b>pgvector</b> finds documents whose meaning is close to yours, even when the words are different. Great for paraphrases.</li>
+                <li><b>hybrid</b> mixes both and often wins overall.</li>
+              </ul>
+              <p>
+                Click any <span class="explain-btn" style="cursor:default">explain</span> button to get a plain-English walkthrough of what that panel or that result is doing.
+              </p>
+              <div class="example">
+                Try this: search for <code>postgres indexing</code>, then for a typo like <code>pgvetor</code>, and watch how the three panels disagree.
+              </div>
+            </div>
+          </template>
+
+          <!-- tsvector engine -->
+          <template x-if="modal === 'tsvector-engine'">
+            <div>
+              <h4>What is tsvector / tsquery?</h4>
+              <p>
+                tsvector is a special column type in Postgres that stores text in a form that is fast to search. tsquery is the query type that searches it. Together they are Postgres' full-text search.
+              </p>
+
+              <h4>Step 1: the document gets chopped up</h4>
+              <p>
+                Before a document is stored, Postgres breaks its text into words, lowercases them, throws away common stop words like "the" and "is", and stems each word down to its root. So "Postgres Indexing basics" becomes roughly <code>postgr</code>, <code>index</code>, <code>basic</code>.
+              </p>
+              <div class="example">
+                That is why searching for <code>indexing</code> also finds <code>indexes</code> and <code>indexed</code>: they all stem to <code>index</code>.
+              </div>
+
+              <h4>Step 2: your query goes through the same grinder</h4>
+              <p>
+                When you type <code>postgres indexing</code>, Postgres turns it into a tsquery that looks like <code>'postgr' &amp; 'index'</code>. The <code>&amp;</code> means "both words must be present."
+              </p>
+
+              <h4>Step 3: the match</h4>
+              <p>
+                The <code>@@</code> operator asks "does this document's tsvector satisfy this tsquery?" If yes, the doc is a hit.
+              </p>
+              <div class="formula">WHERE d.search_tsv @@ websearch_to_tsquery('english', 'postgres indexing')</div>
+
+              <h4>Step 4: ranking with weights</h4>
+              <p>
+                Not all matches are equal. When we saved the document, we used <code>setweight</code> to tag title lexemes with weight <b>A</b> and body lexemes with weight <b>B</b>. At query time, <code>ts_rank_cd</code> uses a weight array in the order <code>{D, C, B, A} = {0.1, 0.2, 0.4, 1.0}</code> (this order is straight from the Postgres docs). A lexeme tagged A is multiplied by 1.0, a lexeme tagged B by 0.4, and so on.
+              </p>
+              <p>
+                <code>ts_rank_cd</code> is <b>cover density rank</b>, from Clarke, Cormack and Tudhope (1999). It is not a plain sum of per-lexeme weights: it also rewards documents where the matching lexemes sit close together. So "title match contributes more than body match" is the intuition, but the actual score also depends on how tightly the matches cluster.
+              </p>
+              <div class="example">
+                Practical effect: a doc titled "Postgres Indexing" usually outranks a doc that only mentions the same words scattered through a long body.
+              </div>
+
+              <h4>Where it shines, where it breaks</h4>
+              <ul>
+                <li>Great: exact terms, names, IDs, stemmed variants.</li>
+                <li>Bad: paraphrases ("database tuning" does not match a doc about "postgres performance"). Bad: typos. The word has to actually match a lexeme.</li>
+              </ul>
+
+              <h4>Code</h4>
+              <p><code>src/adapters/postgres/text-search.pg.ts</code> runs the SQL. <code>sql/001_init.sql</code> defines the generated <code>search_tsv</code> column and the setweight calls.</p>
+
+              <div class="doc-links">
+                Official Postgres docs:
+                <ul>
+                  <li><a href="https://www.postgresql.org/docs/current/textsearch-intro.html" target="_blank" rel="noopener">Full-text search intro</a></li>
+                  <li><a href="https://www.postgresql.org/docs/current/datatype-textsearch.html" target="_blank" rel="noopener">tsvector / tsquery data types</a></li>
+                  <li><a href="https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-PARSING-QUERIES" target="_blank" rel="noopener">websearch_to_tsquery, plainto_tsquery, etc.</a></li>
+                  <li><a href="https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-RANKING" target="_blank" rel="noopener">ts_rank and ts_rank_cd ranking</a></li>
+                  <li><a href="https://www.postgresql.org/docs/current/textsearch-dictionaries.html#TEXTSEARCH-STOPWORDS" target="_blank" rel="noopener">Stop-word dictionaries</a></li>
+                </ul>
+              </div>
+            </div>
+          </template>
+
+          <!-- pgvector engine -->
+          <template x-if="modal === 'pgvector-engine'">
+            <div>
+              <h4>What is an embedding?</h4>
+              <p>
+                pgvector compares documents by looking at numbers, not words. So we have to turn every piece of text into a list of numbers first. That list is called an <b>embedding</b>.
+              </p>
+              <p>
+                Ours has <b>128 numbers</b> in it. Why 128? It is a teaching-sized choice. Real embedding models use 384, 768, or 1536. The math is the same.
+              </p>
+
+              <h4>How do we get those 128 numbers?</h4>
+              <p>This project uses a simple trick so you do not need an API key:</p>
+              <ul>
+                <li><b>Bag of words:</b> split the text into words. Throw away punctuation and order.</li>
+                <li><b>Hash each word into one of 128 slots:</b> run it through a tiny math recipe that turns a string into a number, then mod 128.</li>
+                <li><b>Add 1 to that slot.</b> Also hash word-pairs (bigrams) and add 0.5, so phrases matter a little.</li>
+                <li><b>L2 normalize:</b> shrink the whole list so its length is 1, so short and long docs compare fairly.</li>
+              </ul>
+              <div class="example">
+                <code>"postgres indexing basics"</code> might fill slots 32, 78, and 109 with small numbers and leave the other 125 slots at zero.
+              </div>
+
+              <h4>How does the search actually rank?</h4>
+              <p>
+                Cosine similarity. Think of each 128-number list as an arrow pointing in 128-dimensional space. Two arrows pointing the same way -> similar. Perpendicular -> unrelated.
+              </p>
+              <ul>
+                <li><code>&lt;=&gt;</code> cosine distance (what we use)</li>
+                <li><code>&lt;-&gt;</code> L2 (Euclidean) distance</li>
+                <li><code>&lt;#&gt;</code> negative inner product. (Yes, negated on purpose: Postgres B-tree index scans only work in ascending order, so pgvector returns <code>-(a . b)</code> so that "smallest first" produces the best matches.)</li>
+              </ul>
+              <div class="formula">SELECT d.*, (embedding &lt;=&gt; query_vec) AS distance FROM documents ORDER BY distance LIMIT 20</div>
+              <p>We report <code>1 - distance</code> as the score so higher means more similar, matching the other engines.</p>
+
+              <h4>Indexes: IVFFlat vs HNSW</h4>
+              <p>
+                pgvector ships two approximate-nearest-neighbor index types. Per the pgvector README:
+              </p>
+              <ul>
+                <li><b>IVFFlat</b>: faster build time, smaller on disk, lower query performance. Needs data in the table <i>before</i> index creation because it trains k-means on the existing vectors.</li>
+                <li><b>HNSW</b>: better speed/recall tradeoff than IVFFlat, but slower to build and uses more memory. Can be created on an empty table because it has no training step.</li>
+              </ul>
+              <p>
+                This project uses IVFFlat with <code>lists = 100</code> (see <code>sql/002_indexes.sql</code>). The README's sizing rule is <code>rows / 1000</code> for up to 1M rows, and <code>sqrt(rows)</code> above 1M rows.
+              </p>
+
+              <h4>Where it shines, where it breaks</h4>
+              <ul>
+                <li>Real neural embeddings: great at paraphrases, typos, and "close in meaning."</li>
+                <li><b>Our fake embedding</b> only captures shared tokens, not meaning. So it looks like a noisy keyword search. Swap in a real embedding model (OpenAI, Ollama, etc.) by replacing <code>DeterministicFakeEmbedding</code> and the difference becomes dramatic.</li>
+              </ul>
+
+              <h4>Code</h4>
+              <p><code>src/adapters/postgres/vector-search.pg.ts</code> (the SQL) and <code>src/adapters/embedding/deterministic-fake-embedding.ts</code> (the hashing).</p>
+
+              <div class="doc-links">
+                Official pgvector docs:
+                <ul>
+                  <li><a href="https://github.com/pgvector/pgvector#getting-started" target="_blank" rel="noopener">Getting started (vector type)</a></li>
+                  <li><a href="https://github.com/pgvector/pgvector#querying" target="_blank" rel="noopener">Querying and distance operators</a></li>
+                  <li><a href="https://github.com/pgvector/pgvector#distances" target="_blank" rel="noopener">Distance reference (cosine similarity recipe)</a></li>
+                  <li><a href="https://github.com/pgvector/pgvector#ivfflat" target="_blank" rel="noopener">IVFFlat index</a></li>
+                  <li><a href="https://github.com/pgvector/pgvector#hnsw" target="_blank" rel="noopener">HNSW index</a></li>
+                </ul>
+              </div>
+            </div>
+          </template>
+
+          <!-- hybrid engine -->
+          <template x-if="modal === 'hybrid-engine'">
+            <div>
+              <h4>Why blend?</h4>
+              <p>
+                Keyword search wins on exact terms. Vector search wins on paraphrases. Real search boxes get both kinds of queries, so production systems almost always combine both.
+              </p>
+
+              <h4>The problem: scores are not on the same scale</h4>
+              <p>
+                tsvector scores might range 0.01 to 1.5. Vector similarities range -1 to 1. You cannot just add them.
+              </p>
+
+              <h4>The fix: min-max normalize</h4>
+              <p>
+                For each engine's result list, find the min and max scores, then rescale everyone into 0..1. The best result becomes 1, the worst becomes 0, everything else slots in between.
+              </p>
+              <div class="formula">normalized = (score - min) / (max - min)</div>
+
+              <h4>Blend with weights</h4>
+              <div class="formula">final = 0.5 * text_normalized + 0.5 * vector_normalized</div>
+              <p>
+                If a document only appeared in one engine's list, the other engine's contribution is 0.
+              </p>
+
+              <h4>Caveat</h4>
+              <p>
+                Min-max is fragile: one outlier in either list can squash everything else. Production systems often use <b>Reciprocal Rank Fusion</b> (RRF, Cormack et al. 2009) instead, which only cares about rank position, not raw scores. Elasticsearch, OpenSearch, Weaviate, and others use RRF for their hybrid retrieval. This playground uses min-max because it is easier to see what is happening.
+              </p>
+
+              <h4>Code</h4>
+              <p><code>src/application/hybrid-search.ts</code>.</p>
+
+              <div class="doc-links">
+                Further reading:
+                <ul>
+                  <li><a href="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf" target="_blank" rel="noopener">Reciprocal Rank Fusion (Cormack, Clarke, Buttcher, SIGIR 2009)</a></li>
+                  <li><a href="https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion" target="_blank" rel="noopener">Elastic's writeup on RRF</a></li>
+                </ul>
+              </div>
+            </div>
+          </template>
+
+          <!-- tsvector hit -->
+          <template x-if="modal === 'tsvector-hit' && hitCtx">
+            <div>
+              <p><b x-text="hitCtx.title"></b></p>
+
+              <h4>What Postgres did with your query</h4>
+              <p>
+                <code>websearch_to_tsquery('english', <span x-text="q"></span>)</code> lowercased and stemmed your words, then joined them with <code>&amp;</code> (AND). The result is the tsquery:
+              </p>
+              <div class="formula" x-text="hitCtx.details.parsedTsquery"></div>
+              <p style="color: var(--muted); font-size: 12.5px">
+                Notice how "postgres" becomes <code>postgr</code> and "indexing" becomes <code>index</code>. That is the English stemmer at work. It also means a search for "indexes" would match this same tsquery.
+              </p>
+
+              <h4>Which lexemes actually matched</h4>
+              <p>These are the stemmed words shared by your query and this document's tsvector:</p>
+              <div>
+                <template x-for="lex in (hitCtx.details.matchedLexemes || [])" :key="lex">
+                  <span class="pill" x-text="lex"></span>
+                </template>
+                <span x-show="!(hitCtx.details.matchedLexemes || []).length" class="empty">none</span>
+              </div>
+
+              <h4>How the score was computed</h4>
+              <p>
+                <code>ts_rank_cd</code> is <b>cover density rank</b>. It uses the weight array in order <code>{D, C, B, A} = {0.1, 0.2, 0.4, 1.0}</code>. Title lexemes carry weight A and body weight B (set in <code>sql/001_init.sql</code>), so matches on title words are multiplied by 1.0 and matches on body words by 0.4. The score also depends on how tightly the matching lexemes cluster together in the document, not just how many hits there are.
+              </p>
+              <div class="formula" x-text="'ts_rank_cd = ' + hitCtx.details.rawScore"></div>
+
+              <h4>The stored tsvector for this document</h4>
+              <p style="color: var(--muted); font-size: 12.5px">Positions stripped, truncated for display. Notice it is all roots, no stop words.</p>
+              <div class="formula" x-text="hitCtx.details.tsvectorPreview"></div>
+            </div>
+          </template>
+
+          <!-- pgvector hit -->
+          <template x-if="modal === 'pgvector-hit' && hitCtx">
+            <div>
+              <p><b x-text="hitCtx.title"></b></p>
+
+              <h4>What Postgres did with your query</h4>
+              <p>
+                Your query "<span x-text="q"></span>" was turned into a 128-number embedding by the <code>DeterministicFakeEmbedding</code> adapter. Postgres then compared that vector against every document's embedding using cosine distance (the <code>&lt;=&gt;</code> operator).
+              </p>
+
+              <h4>Distance vs similarity</h4>
+              <p>
+                Cosine distance is 0 for identical direction and 2 for opposite. Similarity is <code>1 - distance</code>.
+              </p>
+              <div class="formula">
+                cosine_distance = <span x-text="format(hitCtx.details.cosineDistance)"></span>
+                <br />
+                cosine_similarity = 1 - <span x-text="format(hitCtx.details.cosineDistance)"></span> = <span x-text="format(hitCtx.details.cosineSimilarity)"></span>
+              </div>
+              <p style="color: var(--muted); font-size: 12.5px">Ballpark reading: > 0.7 very close, 0.3 to 0.7 somewhat related, &lt; 0.2 weak.</p>
+
+              <h4>The shape of the query vector</h4>
+              <p>
+                Our embeddings are L2 normalized so their length should be about 1:
+              </p>
+              <div class="formula">query L2 norm = <span x-text="format(hitCtx.details.queryNorm)"></span></div>
+              <p>Most of the 128 slots are zero. The slots with the biggest non-zero values (the hashed buckets your query words landed in):</p>
+              <div>
+                <template x-for="d in (hitCtx.details.topQueryDims || [])" :key="d.dim">
+                  <span class="pill">dim <span x-text="d.dim"></span> = <span x-text="format(d.value)"></span></span>
+                </template>
+              </div>
+              <div class="example">
+                Two different queries that share tokens land in the same slots, which is exactly why they end up with high cosine similarity.
+              </div>
+
+              <h4>Index</h4>
+              <p>An <code>IVFFlat</code> index with <code>vector_cosine_ops, lists = 100</code> (see <code>sql/002_indexes.sql</code>) accelerates this search at a small cost in recall.</p>
+            </div>
+          </template>
+
+          <!-- hybrid hit -->
+          <template x-if="modal === 'hybrid-hit' && hitCtx">
+            <div>
+              <p><b x-text="hitCtx.title"></b></p>
+
+              <h4>Where this result came from</h4>
+              <p x-show="hitCtx.details.textRawScore !== null && hitCtx.details.vectorRawScore !== null">
+                This doc showed up in <b>both</b> the tsvector and pgvector lists, so it gets contributions from both engines.
+              </p>
+              <p x-show="hitCtx.details.textRawScore === null">
+                This doc only showed up in the <b>vector</b> engine's list. The text engine found nothing for it, so the text contribution is 0.
+              </p>
+              <p x-show="hitCtx.details.vectorRawScore === null">
+                This doc only showed up in the <b>text</b> engine's list. The vector engine ranked it outside the top results, so the vector contribution is 0.
+              </p>
+
+              <h4>The raw scores</h4>
+              <p>Each engine produces its own score on its own scale:</p>
+              <div>
+                <span class="kv">text raw: <span x-text="fmtOrDash(hitCtx.details.textRawScore)"></span></span>
+                <span class="kv">vector raw: <span x-text="fmtOrDash(hitCtx.details.vectorRawScore)"></span></span>
+              </div>
+
+              <h4>Normalize into 0..1</h4>
+              <p>For each engine we rescale against the best and worst in that engine's list:</p>
+              <div class="formula">normalized = (score - min) / (max - min)</div>
+              <div>
+                <span class="kv">text normalized: <span x-text="fmtOrDash(hitCtx.details.textNormalized)"></span></span>
+                <span class="kv">vector normalized: <span x-text="fmtOrDash(hitCtx.details.vectorNormalized)"></span></span>
+              </div>
+
+              <h4>Blend</h4>
+              <div class="formula">
+                <span x-text="format(hitCtx.details.textWeight)"></span> * <span x-text="fmtOrDash(hitCtx.details.textNormalized)"></span>
+                + <span x-text="format(hitCtx.details.vectorWeight)"></span> * <span x-text="fmtOrDash(hitCtx.details.vectorNormalized)"></span>
+                = <span x-text="format(hitCtx.details.blendedScore)"></span>
+              </div>
+              <p style="color: var(--muted); font-size: 12.5px">
+                Change the weights in <code>src/application/hybrid-search.ts</code> to favor one engine over the other.
+              </p>
+            </div>
+          </template>
+
+        </div>
+      </div>
+    </div>
+
     <script>
       function search() {
         return {
           q: "",
           loading: false,
-          text: [],
-          vector: [],
-          hybrid: [],
+          text: { hits: [], meta: null },
+          vector: { hits: [], meta: null },
+          hybrid: { hits: [], meta: null },
+          modal: null,
+          hitCtx: null,
           setExample(v) { this.q = v; this.runAll(); },
           truncate(s, n) { return s && s.length > n ? s.slice(0, n) + "..." : s; },
+          format(v) {
+            if (v === null || v === undefined || Number.isNaN(v)) return "-";
+            const n = Number(v);
+            return Math.abs(n) < 0.001 && n !== 0 ? n.toExponential(2) : n.toFixed(4);
+          },
+          fmtOrDash(v) { return v === null || v === undefined ? "-" : this.format(v); },
+          open(id) { this.modal = id; this.hitCtx = null; },
+          openHit(id, hit) { this.modal = id; this.hitCtx = hit; },
+          close() { this.modal = null; this.hitCtx = null; },
+          modalTitle() {
+            switch (this.modal) {
+              case "intro": return "What is this app?";
+              case "tsvector-engine": return "Explainer: tsvector / tsquery";
+              case "pgvector-engine": return "Explainer: pgvector";
+              case "hybrid-engine": return "Explainer: hybrid search";
+              case "tsvector-hit": return "This tsvector result";
+              case "pgvector-hit": return "This pgvector result";
+              case "hybrid-hit": return "This hybrid result";
+              default: return "";
+            }
+          },
           async runAll() {
-            if (!this.q.trim()) { this.text = []; this.vector = []; this.hybrid = []; return; }
+            if (!this.q.trim()) {
+              this.text = { hits: [], meta: null };
+              this.vector = { hits: [], meta: null };
+              this.hybrid = { hits: [], meta: null };
+              return;
+            }
             this.loading = true;
             try {
               const [t, v, h] = await Promise.all([
@@ -181,9 +714,9 @@
                 fetch("/api/vector?q=" + encodeURIComponent(this.q)).then(r => r.json()),
                 fetch("/api/hybrid?q=" + encodeURIComponent(this.q)).then(r => r.json()),
               ]);
-              this.text = t.hits || [];
-              this.vector = v.hits || [];
-              this.hybrid = h.hits || [];
+              this.text = t;
+              this.vector = v;
+              this.hybrid = h;
             } finally {
               this.loading = false;
             }
@@ -191,5 +724,6 @@
         };
       }
     </script>
+    <style>[x-cloak] { display: none !important; }</style>
   </body>
 </html>

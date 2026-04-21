@@ -8,8 +8,12 @@ CREATE INDEX IF NOT EXISTS documents_title_trgm_idx
   ON documents USING GIN (title gin_trgm_ops);
 
 -- IVFFlat index for vector cosine distance.
--- lists = sqrt(rows) is a reasonable starting point. Rebuild after large loads.
--- Must be built AFTER data is loaded to be effective; we (re)create it in the
--- seed step. Creating an empty one here is harmless.
+-- Per the pgvector README, lists sizing is `rows / 1000` for up to 1M rows
+-- and `sqrt(rows)` above 1M rows. With ~200 seeded docs that would be tiny,
+-- so we use 100 as a teaching default and reindex after the seed step for
+-- better recall.
+-- IVFFlat has a k-means training step, so it is only effective AFTER the
+-- table has data. HNSW does not have this constraint; it can be created on
+-- an empty table.
 CREATE INDEX IF NOT EXISTS documents_embedding_idx
   ON documents USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
