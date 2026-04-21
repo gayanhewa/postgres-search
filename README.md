@@ -7,6 +7,10 @@ A self-contained playground for learning two Postgres search techniques side by 
 
 You run a single Postgres container, seed it with a mix of curated and faker-generated documents, then hit a small web app that runs the same query through both engines plus a simple hybrid blend. The goal is to build intuition for how each engine behaves and where each one shines.
 
+![Preview: searching "food" across 759 Wikipedia-seeded docs, tsvector / pgvector / hybrid side by side](docs/images/preview-wikipedia.png)
+
+_Preview above: the query "food" running against ~750 Wikipedia article intros. Notice how pgvector surfaces "Tataki" (Japanese food preparation) which never appears in the tsvector panel because "tataki" is not a token match for "food"; the hybrid panel unions both._
+
 ## What you will learn
 
 - How `to_tsvector`, `tsquery`, and `ts_rank_cd` actually work, including weighted ranking
