@@ -36,23 +36,61 @@ export class HybridSearch {
     const textNorm = normalize(textHits);
     const vectorNorm = normalize(vectorHits);
 
-    const byId = new Map<number, { hit: SearchHit; score: number }>();
-    for (const [hit, s] of textNorm) {
-      byId.set(hit.document.id, { hit, score: this.weights.text * s });
+    interface Merged {
+      hit: SearchHit;
+      textRaw: number | null;
+      textNormalized: number | null;
+      vectorRaw: number | null;
+      vectorNormalized: number | null;
+      blended: number;
     }
-    for (const [hit, s] of vectorNorm) {
+
+    const byId = new Map<number, Merged>();
+    for (const [hit, n] of textNorm) {
+      byId.set(hit.document.id, {
+        hit,
+        textRaw: hit.score,
+        textNormalized: n,
+        vectorRaw: null,
+        vectorNormalized: null,
+        blended: this.weights.text * n,
+      });
+    }
+    for (const [hit, n] of vectorNorm) {
       const existing = byId.get(hit.document.id);
       if (existing) {
-        existing.score += this.weights.vector * s;
+        existing.vectorRaw = hit.score;
+        existing.vectorNormalized = n;
+        existing.blended += this.weights.vector * n;
       } else {
-        byId.set(hit.document.id, { hit, score: this.weights.vector * s });
+        byId.set(hit.document.id, {
+          hit,
+          textRaw: null,
+          textNormalized: null,
+          vectorRaw: hit.score,
+          vectorNormalized: n,
+          blended: this.weights.vector * n,
+        });
       }
     }
 
     return [...byId.values()]
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => b.blended - a.blended)
       .slice(0, query.limit ?? 20)
-      .map(({ hit, score }) => ({ ...hit, score }));
+      .map((m) => ({
+        document: m.hit.document,
+        score: m.blended,
+        details: {
+          kind: "hybrid" as const,
+          textRawScore: m.textRaw,
+          textNormalized: m.textNormalized,
+          vectorRawScore: m.vectorRaw,
+          vectorNormalized: m.vectorNormalized,
+          textWeight: this.weights.text,
+          vectorWeight: this.weights.vector,
+          blendedScore: m.blended,
+        },
+      }));
   }
 }
 

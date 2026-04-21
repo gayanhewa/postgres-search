@@ -45,15 +45,44 @@ export class PgVectorSearch implements VectorSearchPort {
       ORDER BY embedding <=> ${vec}::vector
       LIMIT ${limit}
     `;
-    return rows.map((r) => ({
-      document: {
-        id: Number(r.id),
-        title: r.title,
-        body: r.body,
-        tags: r.tags,
-        createdAt: r.created_at,
-      },
-      score: 1 - Number(r.distance),
-    }));
+
+    const queryNorm = l2Norm(embedding);
+    const topQueryDims = pickTopDims(embedding, 5);
+
+    return rows.map((r) => {
+      const distance = Number(r.distance);
+      const similarity = 1 - distance;
+      return {
+        document: {
+          id: Number(r.id),
+          title: r.title,
+          body: r.body,
+          tags: r.tags,
+          createdAt: r.created_at,
+        },
+        score: similarity,
+        details: {
+          kind: "pgvector" as const,
+          cosineDistance: distance,
+          cosineSimilarity: similarity,
+          queryNorm,
+          topQueryDims,
+        },
+      };
+    });
   }
+}
+
+function l2Norm(v: number[]): number {
+  let s = 0;
+  for (const x of v) s += x * x;
+  return Math.sqrt(s);
+}
+
+function pickTopDims(v: number[], k: number): Array<{ dim: number; value: number }> {
+  return v
+    .map((value, dim) => ({ dim, value }))
+    .filter((d) => d.value !== 0)
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value))
+    .slice(0, k);
 }
