@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { faker } from "@faker-js/faker";
 import { DeterministicFakeEmbedding } from "../src/adapters/embedding/deterministic-fake-embedding.ts";
 import { createSql } from "../src/adapters/postgres/client.ts";
@@ -6,15 +8,28 @@ import { IndexDocument } from "../src/application/index-document.ts";
 import { loadEnv } from "../src/config/env.ts";
 
 /**
- * Seed the database with a mix of:
- * - Fully random faker articles (noise, so search has something to sift through)
- * - A handful of curated, on-topic articles that make the differences between
- *   tsvector and pgvector easy to see when you search.
+ * Seed the database.
+ *
+ * SEED_SOURCE controls what noise gets loaded on top of the curated docs:
+ *   - "faker"     (default): random lorem-ipsum articles. Fast, offline, but
+ *                 gives search nothing interesting to discriminate on.
+ *   - "wikipedia": reads data/wikipedia.jsonl produced by
+ *                 `bun run data:fetch`. Real topical text across several
+ *                 Wikipedia categories. Much more useful for learning.
+ *
+ * Both modes keep the curated docs on top of the table so the playground's
+ * "postgres indexing" queries still land on familiar titles.
  */
 
 faker.seed(42);
 
-const CURATED = [
+interface DocInput {
+  title: string;
+  body: string;
+  tags: string[];
+}
+
+const CURATED: DocInput[] = [
   {
     title: "An Introduction to Postgres Indexing",
     body:
@@ -76,11 +91,52 @@ const CURATED = [
   },
 ];
 
+function buildFakerDocs(count: number): DocInput[] {
+  const docs: DocInput[] = [];
+  for (let i = 0; i < count; i++) {
+    const paragraphs = faker.number.int({ min: 2, max: 5 });
+    docs.push({
+      title: faker.lorem.sentence({ min: 4, max: 10 }),
+      body: faker.lorem.paragraphs(paragraphs, "\n\n"),
+      tags: faker.helpers.arrayElements(
+        ["postgres", "sql", "search", "indexing", "embeddings", "performance", "tips", "devops"],
+        { min: 0, max: 3 },
+      ),
+    });
+  }
+  return docs;
+}
+
+async function loadWikipediaDocs(path: string, limit?: number): Promise<DocInput[]> {
+  const raw = await readFile(path, "utf8").catch((err) => {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      console.error(
+        `\n${path} not found. Run 'bun run data:fetch' first to produce it.\n`,
+      );
+      process.exit(1);
+    }
+    throw err;
+  });
+  const docs: DocInput[] = [];
+  for (const line of raw.split("\n")) {
+    if (!line.trim()) continue;
+    const parsed = JSON.parse(line) as DocInput;
+    docs.push(parsed);
+    if (limit && docs.length >= limit) break;
+  }
+  return docs;
+}
+
 const env = loadEnv();
 const sql = createSql(env.DATABASE_URL);
 const repo = new PgDocumentRepository(sql);
 const embedder = new DeterministicFakeEmbedding();
 const indexDoc = new IndexDocument(repo, embedder);
+
+const SEED_SOURCE = (process.env.SEED_SOURCE ?? "faker").toLowerCase();
+const RANDOM_COUNT = Number(process.env.SEED_RANDOM_COUNT ?? 200);
+const WIKI_PATH = process.env.SEED_WIKI_PATH ?? join(process.cwd(), "data", "wikipedia.jsonl");
+const WIKI_LIMIT = process.env.SEED_WIKI_LIMIT ? Number(process.env.SEED_WIKI_LIMIT) : undefined;
 
 const existing = await repo.count();
 if (existing > 0) {
@@ -93,18 +149,18 @@ for (const d of CURATED) {
   await indexDoc.execute(d);
 }
 
-const RANDOM_COUNT = Number(process.env.SEED_RANDOM_COUNT ?? 200);
-console.log(`seeding ${RANDOM_COUNT} random faker documents`);
-for (let i = 0; i < RANDOM_COUNT; i++) {
-  const paragraphs = faker.number.int({ min: 2, max: 5 });
-  await indexDoc.execute({
-    title: faker.lorem.sentence({ min: 4, max: 10 }),
-    body: faker.lorem.paragraphs(paragraphs, "\n\n"),
-    tags: faker.helpers.arrayElements(
-      ["postgres", "sql", "search", "indexing", "embeddings", "performance", "tips", "devops"],
-      { min: 0, max: 3 },
-    ),
-  });
+let noise: DocInput[];
+if (SEED_SOURCE === "wikipedia") {
+  console.log(`loading Wikipedia docs from ${WIKI_PATH}`);
+  noise = await loadWikipediaDocs(WIKI_PATH, WIKI_LIMIT);
+  console.log(`seeding ${noise.length} Wikipedia documents`);
+} else {
+  noise = buildFakerDocs(RANDOM_COUNT);
+  console.log(`seeding ${noise.length} random faker documents`);
+}
+
+for (const d of noise) {
+  await indexDoc.execute(d);
 }
 
 const total = await repo.count();

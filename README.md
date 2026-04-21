@@ -31,6 +31,24 @@ bun run dev            # http://localhost:3000
 
 Or in one shot: `bun run db:reset`.
 
+### Better seed data: real Wikipedia articles
+
+By default the seeder uses `@faker-js/faker` for noise, which is fast but topically flat. For much more interesting queries, fetch real Wikipedia intros:
+
+```bash
+bun run data:fetch              # downloads ~750 article intros to data/wikipedia.jsonl
+SEED_SOURCE=wikipedia bun run db:seed
+```
+
+The fetcher respects Wikipedia's rate limits (polite delay, 429-aware retries) and has no auth requirements. Tunable via env vars:
+
+- `WIKI_CATEGORIES` - comma-separated Wikipedia category names (defaults cover DB, ML, astronomy, cooking, etc.)
+- `WIKI_PER_CATEGORY` - max articles per category (default 200)
+- `WIKI_CONCURRENCY` - parallel requests (default 2, do not push this up)
+- `WIKI_DELAY_MS` - delay between summary fetches (default 120ms)
+
+With real Wikipedia data you can see the engines disagree meaningfully: `relational data storage` (paraphrase) lands on different docs than `postgres database` (exact term), and so on.
+
 ## What you get
 
 - A browser UI at `http://localhost:3000` that runs your query through all three engines in parallel and shows the top results side by side.

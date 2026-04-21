@@ -13,6 +13,7 @@
     "db:down": "docker compose down",
     "db:migrate": "bun run scripts/migrate.ts",
     "db:seed": "bun run scripts/seed.ts",
+    "data:fetch": "bun run scripts/fetch-wikipedia.ts",
     "db:reset": "docker compose down -v && docker compose up -d && bun run scripts/wait-for-db.ts && bun run scripts/migrate.ts && bun run scripts/seed.ts"
   },
   "dependencies": {
