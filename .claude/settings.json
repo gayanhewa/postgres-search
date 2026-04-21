@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bun install)",
+      "Bash(bun install:*)",
+      "Bash(bun run:*)",
+      "Bash(bun test:*)",
+      "Bash(bun test)",
+      "Bash(bun x:*)",
+      "Bash(bunx:*)",
+      "Bash(bun --version)",
+      "Bash(bun pm:*)",
+      "Bash(tsc:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker logs:*)",
+      "Bash(psql:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(cat:*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(**/.env)",
+      "Read(**/.env.*)"
+    ]
+  }
+}

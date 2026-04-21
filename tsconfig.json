@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "jsx": "preserve",
+    "allowJs": false,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "types": ["bun-types"],
+    "baseUrl": ".",
+    "paths": {
+      "@domain/*": ["src/domain/*"],
+      "@ports/*": ["src/ports/*"],
+      "@application/*": ["src/application/*"],
+      "@adapters/*": ["src/adapters/*"],
+      "@interfaces/*": ["src/interfaces/*"],
+      "@config/*": ["src/config/*"]
+    }
+  },
+  "include": ["src/**/*", "tests/**/*", "scripts/**/*"]
+}
